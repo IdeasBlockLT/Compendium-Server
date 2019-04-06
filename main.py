@@ -210,14 +210,17 @@ def deleteAccount():
 
 			database.connect()
 			data = database.execute(query, true)
-			database.disconnect()
 
 			return data
 
 
 		except Exception as e:
-            io_print('Delete profile error: ' + str(e))
-            return query + ':Delete Error: ' + str(e)
+			io_print('Delete profile error: ' + str(e))
+			return query + ':Delete Error: ' + str(e)
+
+		finally:
+			if database:
+				database.disconnect()
 
 
 # Search for string in the database

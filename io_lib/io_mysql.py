@@ -167,6 +167,4 @@ class io_mysql:
             raise
 
 
-    def delete_user(self, )
-
 # ==========================    SQL     =============================
