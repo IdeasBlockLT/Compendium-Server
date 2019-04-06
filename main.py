@@ -211,7 +211,10 @@ def deleteAccount():
 			database.connect()
 			data = database.execute(query, True)
 
-			return data
+			if !data:
+				return "Deleted"
+			else:
+				return data
 
 
 		except Exception as e:
