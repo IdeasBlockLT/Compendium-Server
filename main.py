@@ -61,6 +61,57 @@ def about():
     return render_template('about.html')
 
 
+# Sign UP button calls POST
+@app.route('/signUp',               methods=['POST','GET'])
+def signUp():
+
+    if   request.method == 'GET': 
+        name       = request.args.get('example')
+
+    elif request.method == 'POST':
+
+        key        = request.form['key']
+        name       = request.form['name']
+        email      = request.form['email']
+        password   = request.form['password']
+        description= request.form['description']
+        picture_ref= request.form['picture']
+        latitude   = float(request.form['latitude'])
+        longitude  = float(request.form['longitude'])
+        city       = request.form['city']
+        picture    = request.form['picture']
+
+    if key != compendium_private_key:
+            return ("Error in Compendium Authentication key " + key)
+
+    try:
+        # Validate the received values
+        if name and email and password:
+            # MySQL process
+            database.connect()
+
+            if password != 'password':
+                password = generate_password_hash(password)
+
+            result = database.sp_create_user(name,email,password, description,latitude,longitude, city, picture)
+            
+            if result != 'Error':
+                io_print("Successfully created a new user in DB...")
+                # return 'Successfully registered ' + name + ' with email: ' + email
+                return name
+
+            # User is already in database, since this is the same fuction to log in or sign up from FB, we choose what to do:
+            else:
+                return result
+        else:
+            return json.dumps({'html':'<span>Error: Enter the required fields</span>'})
+    except Exception as e:
+        io_print('Catch signup error: ' + str(e))
+        return 'Error: ' + str(e)
+    finally:
+        if database:
+            database.disconnect()
+
 # Profile page
 @app.route('/profile',               methods=['POST','GET'])
 def profile():
@@ -146,56 +197,27 @@ def updateProfile():
             database.disconnect()
 
 
-# Sign UP button calls POST
-@app.route('/signUp',               methods=['POST','GET'])
-def signUp():
+# Delete User's account
+@app.route('/deleteAccount', methods = ['POST'])
+def deleteAccount():
+	if request.method == 'POST':
 
-    if   request.method == 'GET': 
-        name       = request.args.get('example')
+		user_name = request.form['user_name']
 
-    elif request.method == 'POST':
+		try:
 
-        key        = request.form['key']
-        name       = request.form['name']
-        email      = request.form['email']
-        password   = request.form['password']
-        description= request.form['description']
-        picture_ref= request.form['picture']
-        latitude   = float(request.form['latitude'])
-        longitude  = float(request.form['longitude'])
-        city       = request.form['city']
-        picture    = request.form['picture']
+			query = "DELETE FROM `movies` WHERE `user_name` = " + user_name
 
-    if key != compendium_private_key:
-            return ("Error in Compendium Authentication key " + key)
+			database.connect()
+			data = database.execute(query, true)
+			database.disconnect()
 
-    try:
-        # Validate the received values
-        if name and email and password:
-            # MySQL process
-            database.connect()
+			return data
 
-            if password != 'password':
-                password = generate_password_hash(password)
 
-            result = database.sp_create_user(name,email,password, description,latitude,longitude, city, picture)
-            
-            if result != 'Error':
-                io_print("Successfully created a new user in DB...")
-                # return 'Successfully registered ' + name + ' with email: ' + email
-                return name
-
-            # User is already in database, since this is the same fuction to log in or sign up from FB, we choose what to do:
-            else:
-                return result
-        else:
-            return json.dumps({'html':'<span>Error: Enter the required fields</span>'})
-    except Exception as e:
-        io_print('Catch signup error: ' + str(e))
-        return 'Error: ' + str(e)
-    finally:
-        if database:
-            database.disconnect()
+		except Exception as e:
+            io_print('Delete profile error: ' + str(e))
+            return query + ':Delete Error: ' + str(e)
 
 
 # Search for string in the database
