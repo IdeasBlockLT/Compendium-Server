@@ -206,7 +206,7 @@ def deleteAccount():
 
 		try:
 
-			query = "DELETE FROM `user_info` WHERE `user_name` = " + user_name
+			query = "DELETE FROM `user_info` WHERE `user_id` = " + user_name
 
 			database.connect()
 			data = database.execute(query, true)
